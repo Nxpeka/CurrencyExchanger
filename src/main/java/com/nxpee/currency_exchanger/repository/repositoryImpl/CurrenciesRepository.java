@@ -14,7 +14,7 @@ public class CurrenciesRepository implements CrudRepository<Currencies, Integer>
     private final DataSource dataSource = ConfiguredDataSource.getINSTANCE();
 
     private final String SELECT_ALL = """
-                        SELECT * from exchange_rates
+                        SELECT * from currencies
                         """;
     private final String SELECT_BY_ID = SELECT_ALL + """
             WHERE id = ?
