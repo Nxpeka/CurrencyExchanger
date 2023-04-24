@@ -14,8 +14,8 @@ public class CurrenciesRepository implements CrudRepository<Currencies, Integer>
     private final DataSource dataSource = ConfiguredDataSource.getINSTANCE();
 
     private final String SELECT_ALL = """
-                        SELECT * from currencies
-                        """;
+            SELECT * from currencies
+            """;
     private final String SELECT_BY_ID = SELECT_ALL + """
             WHERE id = ?
             """;
@@ -47,9 +47,6 @@ public class CurrenciesRepository implements CrudRepository<Currencies, Integer>
                 return resultSet.getInt("id");
             }
         }
-        catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
         return null;
     }
 
@@ -64,9 +61,6 @@ public class CurrenciesRepository implements CrudRepository<Currencies, Integer>
                 return Optional.of(mapToCurrencies(resultSet));
             }
         }
-        catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
         return Optional.empty();
     }
 
@@ -76,14 +70,10 @@ public class CurrenciesRepository implements CrudRepository<Currencies, Integer>
              PreparedStatement statement = connection.prepareStatement(SELECT_ALL)){
             List<Currencies> currencies = new ArrayList<>();
             ResultSet resultSet = statement.executeQuery();
-
             while (resultSet.next()){
                 currencies.add(mapToCurrencies(resultSet));
             }
-
             return currencies;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
 
     }
@@ -100,9 +90,6 @@ public class CurrenciesRepository implements CrudRepository<Currencies, Integer>
 
             statement.executeUpdate();
         }
-        catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Override
@@ -113,9 +100,6 @@ public class CurrenciesRepository implements CrudRepository<Currencies, Integer>
             statement.setInt(1, entity.getId());
 
             statement.executeUpdate();
-        }
-        catch (SQLException e) {
-            throw new RuntimeException(e);
         }
     }
 

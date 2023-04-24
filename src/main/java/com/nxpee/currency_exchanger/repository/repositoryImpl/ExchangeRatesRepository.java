@@ -1,6 +1,5 @@
 package com.nxpee.currency_exchanger.repository.repositoryImpl;
 
-import com.nxpee.currency_exchanger.model.Currencies;
 import com.nxpee.currency_exchanger.model.ExchangeRates;
 import com.nxpee.currency_exchanger.repository.CrudRepository;
 import com.nxpee.currency_exchanger.util.ConfiguredDataSource;
@@ -15,8 +14,8 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRates, In
     private final DataSource dataSource = ConfiguredDataSource.getINSTANCE();
 
     private final String SELECT_ALL = """
-                        SELECT * from exchange_rates
-                        """;
+            SELECT * from exchange_rates
+            """;
     private final String SELECT_BY_ID = SELECT_ALL + """
             WHERE id = ?
             """;
@@ -48,9 +47,6 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRates, In
                 return resultSet.getInt("id");
             }
         }
-        catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
         return null;
     }
 
@@ -64,9 +60,6 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRates, In
             if(resultSet.next()){
                 return Optional.of(mapToExchangeRates(resultSet));
             }
-        }
-        catch (SQLException e) {
-            throw new RuntimeException(e);
         }
         return Optional.empty();
     }
@@ -83,8 +76,6 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRates, In
             }
 
             return exchangeRates;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
 
     }
@@ -101,9 +92,6 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRates, In
 
             statement.executeUpdate();
         }
-        catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Override
@@ -114,9 +102,6 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRates, In
             statement.setInt(1, entity.getId());
 
             statement.executeUpdate();
-        }
-        catch (SQLException e) {
-            throw new RuntimeException(e);
         }
     }
 
