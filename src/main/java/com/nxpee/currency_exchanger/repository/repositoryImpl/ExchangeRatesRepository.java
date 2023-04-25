@@ -12,23 +12,30 @@ import java.util.Optional;
 
 public class ExchangeRatesRepository implements CrudRepository<ExchangeRates, Integer> {
     private final DataSource dataSource = ConfiguredDataSource.getINSTANCE();
+    private static final ExchangeRatesRepository INSTANCE = new ExchangeRatesRepository();
 
-    private final String SELECT_ALL = """
+    public static ExchangeRatesRepository getINSTANCE() {
+        return INSTANCE;
+    }
+
+    private ExchangeRatesRepository(){}
+
+    private static final String SELECT_ALL = """
             SELECT * from exchange_rates
             """;
-    private final String SELECT_BY_ID = SELECT_ALL + """
+    private static final String SELECT_BY_ID = SELECT_ALL + """
             WHERE id = ?
             """;
 
-    private final String SAVE = """
+    private static final String SAVE = """
             INSERT INTO exchange_rates (base_currency_id, target_currency_id, rate) VALUES (?, ?, ?)
             """;
 
-    private final String UPDATE = """
+    private static final String UPDATE = """
             UPDATE exchange_rates SET base_currency_id = ?, target_currency_id = ?, rate = ? WHERE id = ?
             """;
 
-    private final String DELETE = """
+    private static final String DELETE = """
             DELETE FROM exchange_rates WHERE id = ?
             """;
 

@@ -13,22 +13,29 @@ import java.util.Optional;
 public class CurrenciesRepository implements CrudRepository<Currencies, Integer> {
     private final DataSource dataSource = ConfiguredDataSource.getINSTANCE();
 
-    private final String SELECT_ALL = """
+    private final static CurrenciesRepository INSTANCE = new CurrenciesRepository();
+
+    public static CurrenciesRepository getInstance() {
+        return INSTANCE;
+    }
+    private CurrenciesRepository(){}
+
+    private static final String SELECT_ALL = """
             SELECT * from currencies
             """;
-    private final String SELECT_BY_ID = SELECT_ALL + """
+    private static final String SELECT_BY_ID = SELECT_ALL + """
             WHERE id = ?
             """;
 
-    private final String SAVE = """
+    private static final String SAVE = """
             INSERT INTO currencies (code, full_name, sign) VALUES (?, ?, ?)
             """;
 
-    private final String UPDATE = """
+    private static final String UPDATE = """
             UPDATE currencies SET code = ?, full_name = ?, sign = ? WHERE id = ?
             """;
 
-    private final String DELETE = """
+    private static final String DELETE = """
             DELETE FROM currencies WHERE id = ?
             """;
 
