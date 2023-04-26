@@ -48,10 +48,11 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRates, In
             statement.setInt(2, entity.getTargetCurrencyId());
             statement.setDouble(3, entity.getRate());
 
-            ResultSet resultSet = statement.executeQuery();
+            statement.executeUpdate();
+            ResultSet generatedKeys = statement.getGeneratedKeys();
 
-            if(resultSet.next()){
-                return resultSet.getInt("id");
+            if(generatedKeys.next()){
+                return generatedKeys.getInt("id");
             }
         }
         return null;

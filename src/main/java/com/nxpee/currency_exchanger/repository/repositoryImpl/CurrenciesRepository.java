@@ -48,10 +48,11 @@ public class CurrenciesRepository implements CrudRepository<Currencies, Integer>
             statement.setString(2, entity.getFullName());
             statement.setString(3, entity.getSign());
 
-            ResultSet resultSet = statement.executeQuery();
+            statement.executeUpdate();
+            ResultSet generatedKeys = statement.getGeneratedKeys();
 
-            if(resultSet.next()){
-                return resultSet.getInt("id");
+            if(generatedKeys.next()){
+                return generatedKeys.getInt("id");
             }
         }
         return null;
