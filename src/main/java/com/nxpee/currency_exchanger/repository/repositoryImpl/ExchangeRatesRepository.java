@@ -14,7 +14,7 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRates, In
     private final DataSource dataSource = ConfiguredDataSource.getINSTANCE();
     private static final ExchangeRatesRepository INSTANCE = new ExchangeRatesRepository();
 
-    public static ExchangeRatesRepository getINSTANCE() {
+    public static ExchangeRatesRepository getInstance() {
         return INSTANCE;
     }
 
