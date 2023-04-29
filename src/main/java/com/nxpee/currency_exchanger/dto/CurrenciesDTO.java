@@ -5,13 +5,13 @@ import java.util.Objects;
 public class CurrenciesDTO {
     private final Integer id;
     private final String code;
-    private final String fullName;
+    private final String name;
     private final String sign;
 
-    public CurrenciesDTO(Integer id, String code, String fullName, String sign) {
+    public CurrenciesDTO(Integer id, String code, String name, String sign) {
         this.id = id;
         this.code = code;
-        this.fullName = fullName;
+        this.name = name;
         this.sign = sign;
     }
 
@@ -20,12 +20,12 @@ public class CurrenciesDTO {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CurrenciesDTO that = (CurrenciesDTO) o;
-        return Objects.equals(id, that.id) && Objects.equals(code, that.code) && Objects.equals(fullName, that.fullName) && Objects.equals(sign, that.sign);
+        return Objects.equals(id, that.id) && Objects.equals(code, that.code) && Objects.equals(name, that.name) && Objects.equals(sign, that.sign);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, code, fullName, sign);
+        return Objects.hash(id, code, name, sign);
     }
 
     public Integer getId() {
@@ -36,8 +36,8 @@ public class CurrenciesDTO {
         return code;
     }
 
-    public String getFullName() {
-        return fullName;
+    public String getName() {
+        return name;
     }
 
     public String getSign() {
