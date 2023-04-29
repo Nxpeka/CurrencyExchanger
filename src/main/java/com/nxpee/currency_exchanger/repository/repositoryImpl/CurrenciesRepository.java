@@ -27,6 +27,10 @@ public class CurrenciesRepository implements CrudRepository<Currencies, Integer>
             WHERE id = ?
             """;
 
+    private static final String SELECT_BY_CODE = SELECT_ALL + """
+            WHERE code = ?
+            """;
+
     private static final String SAVE = """
             INSERT INTO currencies (code, full_name, sign) VALUES (?, ?, ?)
             """;
@@ -63,6 +67,19 @@ public class CurrenciesRepository implements CrudRepository<Currencies, Integer>
         try(Connection connection = dataSource.getConnection();
             PreparedStatement statement = connection.prepareStatement(SELECT_BY_ID)){
             statement.setInt(1, id);
+            ResultSet resultSet = statement.executeQuery();
+
+            if(resultSet.next()){
+                return Optional.of(mapToCurrencies(resultSet));
+            }
+        }
+        return Optional.empty();
+    }
+
+    public Optional<Currencies> findByCode(String code) throws SQLException {
+        try(Connection connection = dataSource.getConnection();
+            PreparedStatement statement = connection.prepareStatement(SELECT_BY_CODE)){
+            statement.setString(1, code);
             ResultSet resultSet = statement.executeQuery();
 
             if(resultSet.next()){
