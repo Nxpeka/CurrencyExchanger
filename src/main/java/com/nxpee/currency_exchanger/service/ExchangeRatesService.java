@@ -36,6 +36,29 @@ public class ExchangeRatesService {
         return Optional.empty();
     }
 
+    public Optional<ExchangeRatesDTO> findPair(String pair) throws InvalidParametersException, SQLException {
+        if(pair.isBlank() || pair.length() < 6){
+            throw new InvalidParametersException("Invalid pair");
+        }
+        String baseCurrencyCode = pair.substring(0, 3);
+        String targetCurrencyCode = pair.substring(3);
+
+        Optional<CurrenciesDTO> optionalBaseCurrency = currenciesService.findByCode(baseCurrencyCode);
+        Optional<CurrenciesDTO> optionalTargetCurrency = currenciesService.findByCode(targetCurrencyCode);
+
+        if(optionalBaseCurrency.isPresent() && optionalTargetCurrency.isPresent()){
+            CurrenciesDTO baseCurrency = optionalBaseCurrency.get();
+            CurrenciesDTO targetCurrency = optionalTargetCurrency.get();
+
+            Optional<ExchangeRates> exchangeRates = repository.findPair(baseCurrency.getId(), targetCurrency.getId());
+
+            if (exchangeRates.isPresent()){
+                return mapToExchangeRatesDTO(exchangeRates.get());
+            }
+        }
+        return Optional.empty();
+    }
+
     public ExchangeRatesDTO save(ExchangeRatesDTO exchangeRatesDTO) throws SQLException {
         Integer genID = repository.save(mapToExhangeRates(exchangeRatesDTO));
         return new ExchangeRatesDTO(genID,

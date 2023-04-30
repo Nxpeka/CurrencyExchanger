@@ -27,6 +27,10 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRates, In
             WHERE id = ?
             """;
 
+    private static final String SELECT_PAIR = SELECT_ALL + """
+            WHERE base_currency_id = ? and target_currency_id = ?
+            """;
+
     private static final String SAVE = """
             INSERT INTO exchange_rates (base_currency_id, target_currency_id, rate) VALUES (?, ?, ?)
             """;
@@ -66,6 +70,20 @@ public class ExchangeRatesRepository implements CrudRepository<ExchangeRates, In
             ResultSet resultSet = statement.executeQuery();
 
             if(resultSet.next()){
+                return Optional.of(mapToExchangeRates(resultSet));
+            }
+        }
+        return Optional.empty();
+    }
+
+    public Optional<ExchangeRates> findPair(Integer baseCurrencyId, Integer targetCurrencyId) throws SQLException {
+        try (Connection connection = dataSource.getConnection();
+            PreparedStatement statement = connection.prepareStatement(SELECT_PAIR)){
+            statement.setInt(1, baseCurrencyId);
+            statement.setInt(2, targetCurrencyId);
+
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()){
                 return Optional.of(mapToExchangeRates(resultSet));
             }
         }
