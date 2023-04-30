@@ -46,7 +46,7 @@ public class CurrenciesService {
     }
 
     public Optional<CurrenciesDTO> findByCode(String code) throws SQLException, InvalidParametersException {
-        if (code.length() < 3){
+        if (code.isBlank() || code.length() < 3){
             throw new InvalidParametersException("Invalid code");
         }
         Optional<Currencies> currencies = repository.findByCode(code);
