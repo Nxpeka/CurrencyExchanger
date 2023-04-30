@@ -45,9 +45,9 @@ public class CurrenciesService {
         return new CurrenciesDTO(genID, code, name, sign);
     }
 
-    public Optional<CurrenciesDTO> findByCode(String code) throws SQLException {
-        if (code.length() > 3){
-            return Optional.empty();
+    public Optional<CurrenciesDTO> findByCode(String code) throws SQLException, InvalidParametersException {
+        if (code.length() < 3){
+            throw new InvalidParametersException("Invalid code");
         }
         Optional<Currencies> currencies = repository.findByCode(code);
         return currencies.map(this::mapToCurrenciesDTO);
