@@ -1,6 +1,8 @@
 package com.nxpee.currency_exchanger.service;
 
+import com.nxpee.currency_exchanger.dto.CurrenciesDTO;
 import com.nxpee.currency_exchanger.dto.ExchangeRatesDTO;
+import com.nxpee.currency_exchanger.exception.InvalidParametersException;
 import com.nxpee.currency_exchanger.model.ExchangeRates;
 import com.nxpee.currency_exchanger.repository.repositoryImpl.ExchangeRatesRepository;
 
@@ -10,6 +12,7 @@ import java.util.*;
 public class ExchangeRatesService {
     private static final ExchangeRatesService INSTANCE = new ExchangeRatesService();
     private final ExchangeRatesRepository repository = ExchangeRatesRepository.getInstance();
+    private final CurrenciesService currenciesService = CurrenciesService.getInstance();
     private ExchangeRatesService() {}
 
     public static ExchangeRatesService getInstance(){
@@ -18,21 +21,45 @@ public class ExchangeRatesService {
 
     public List<ExchangeRatesDTO> findAll() throws SQLException {
         ArrayList<ExchangeRatesDTO> exchangeRatesDTOS = new ArrayList<>();
-        repository.findAll().forEach(value -> exchangeRatesDTOS.add(mapToExhangeRatesDTO(value)));
+        Iterable<ExchangeRates> all = repository.findAll();
+        for (ExchangeRates rates: all){
+            mapToExchangeRatesDTO(rates).ifPresent(exchangeRatesDTOS::add);
+        }
         return exchangeRatesDTOS;
     }
 
-    public ExchangeRatesDTO findById(Integer id) throws SQLException {
+    public Optional<ExchangeRatesDTO> findById(Integer id) throws SQLException {
         Optional<ExchangeRates> exchangeRates = repository.findById(id);
-        return exchangeRates.map(this::mapToExhangeRatesDTO).orElse(null);
+        if(exchangeRates.isPresent()){
+            return mapToExchangeRatesDTO(exchangeRates.get());
+        }
+        return Optional.empty();
     }
 
     public ExchangeRatesDTO save(ExchangeRatesDTO exchangeRatesDTO) throws SQLException {
         Integer genID = repository.save(mapToExhangeRates(exchangeRatesDTO));
         return new ExchangeRatesDTO(genID,
-                exchangeRatesDTO.getBaseCurrencyId(),
-                exchangeRatesDTO.getTargetCurrencyId(),
+                exchangeRatesDTO.getBaseCurrency(),
+                exchangeRatesDTO.getTargetCurrency(),
                 exchangeRatesDTO.getRate());
+    }
+
+    public Optional<ExchangeRatesDTO> save(Set<Map.Entry<String, String[]>> entrySet) throws SQLException, InvalidParametersException {
+        Map<String, Object> mapParams = mapParams(entrySet);
+
+        Optional<CurrenciesDTO> optionalBaseCurrencies = currenciesService.findByCode((String) mapParams.get("baseCurrencyCode"));
+        Optional<CurrenciesDTO> optionalTargetCurrency = currenciesService.findByCode((String) mapParams.get("targetCurrencyCode"));
+
+        if (optionalBaseCurrencies.isPresent() && optionalTargetCurrency.isPresent()){
+            CurrenciesDTO baseCurrenciesDTO = optionalBaseCurrencies.get();
+            CurrenciesDTO targetCurrenciesDTO = optionalTargetCurrency.get();
+            Double doubleRate = (Double) mapParams.get("rate");
+
+            Integer genID = repository.save(new ExchangeRates(null, baseCurrenciesDTO.getId(), targetCurrenciesDTO.getId(), doubleRate));
+
+            return Optional.of(new ExchangeRatesDTO(genID, baseCurrenciesDTO, targetCurrenciesDTO, doubleRate));
+        }
+        return Optional.empty();
     }
 
     public void delete(ExchangeRatesDTO exchangeRatesDTO) throws SQLException {
@@ -47,17 +74,81 @@ public class ExchangeRatesService {
         }
     }
 
-    private ExchangeRatesDTO mapToExhangeRatesDTO(ExchangeRates exchangeRates) {
-        return new ExchangeRatesDTO(exchangeRates.getId(),
-                exchangeRates.getBaseCurrencyId(),
-                exchangeRates.getTargetCurrencyId(),
-                exchangeRates.getRate());
+    private static Double parseDouble(String rate) {
+        Double doubleRate;
+        try {
+            doubleRate = Double.parseDouble(rate);
+        }catch (NumberFormatException e){
+            doubleRate = Double.MIN_VALUE;
+        }
+        return doubleRate;
+    }
+
+    private Map<String, Object> mapParams(Set<Map.Entry<String, String[]>> entrySet) throws InvalidParametersException {
+        if(entrySet.size() != 3){throw new InvalidParametersException("Invalid parameters");}
+        StringBuilder error = new StringBuilder();
+        String baseCurrencyCode = null, targetCurrencyCode = null;
+        Double rate = null;
+
+        for (Map.Entry<String, String[]> entry : entrySet){
+            switch (entry.getKey()) {
+                case "baseCurrencyCode" -> {
+                    if(!entry.getValue()[0].isBlank()){
+                        if(entry.getValue()[0].length() == 3){
+                            baseCurrencyCode = entry.getValue()[0];
+                            break;
+                        }
+                    }
+                    error.append(" baseCurrencyCode");
+                }
+                case "targetCurrencyCode" -> {
+                    if(!entry.getValue()[0].isBlank()){
+                        if(entry.getValue()[0].length() == 3) {
+                            targetCurrencyCode = entry.getValue()[0];
+                            break;
+                        }
+                    }
+                    error.append(" targetCurrencyCode");
+                }
+                case "rate" -> {
+                    if(!entry.getValue()[0].isBlank()) {
+                        rate = parseDouble(entry.getValue()[0]);
+                        if(rate != Double.MIN_VALUE){break;}
+                        rate = null;
+                    }
+                    error.append(" rate");
+
+                }
+            }
+        }
+        if(baseCurrencyCode != null && targetCurrencyCode != null && rate != null){
+            HashMap<String, Object> params = new HashMap<>();
+            params.put("baseCurrencyCode", baseCurrencyCode);
+            params.put("targetCurrencyCode", targetCurrencyCode);
+            params.put("rate", rate);
+
+            return params;
+        }
+
+        throw new InvalidParametersException("Invalid parameters:" + error);
+    }
+
+    private Optional<ExchangeRatesDTO> mapToExchangeRatesDTO(ExchangeRates exchangeRates) throws SQLException {
+        Optional<CurrenciesDTO> baseCurrencyDTO = currenciesService.findById(exchangeRates.getBaseCurrencyId());
+        Optional<CurrenciesDTO> targetCurrencyDTO = currenciesService.findById(exchangeRates.getTargetCurrencyId());
+        if(baseCurrencyDTO.isPresent() && targetCurrencyDTO.isPresent()){
+            return Optional.of(new ExchangeRatesDTO(exchangeRates.getId(),
+                    baseCurrencyDTO.get(),
+                    targetCurrencyDTO.get(),
+                    exchangeRates.getRate()));
+        }
+        return Optional.empty();
     }
 
     private ExchangeRates mapToExhangeRates(ExchangeRatesDTO exchangeRatesDTO) {
         return new ExchangeRates(exchangeRatesDTO.getId(),
-                exchangeRatesDTO.getBaseCurrencyId(),
-                exchangeRatesDTO.getTargetCurrencyId(),
+                exchangeRatesDTO.getBaseCurrency().getId(),
+                exchangeRatesDTO.getTargetCurrency().getId(),
                 exchangeRatesDTO.getRate());
     }
 }
