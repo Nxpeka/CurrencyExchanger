@@ -1,6 +1,7 @@
 package com.nxpee.currency_exchanger.servlets.currencies;
 
 import com.nxpee.currency_exchanger.dto.CurrenciesDTO;
+import com.nxpee.currency_exchanger.exception.AlreadyExistException;
 import com.nxpee.currency_exchanger.exception.InvalidParametersException;
 import com.nxpee.currency_exchanger.service.CurrenciesService;
 import jakarta.servlet.annotation.WebServlet;
@@ -41,6 +42,8 @@ public class CurrenciesServlet extends HttpServlet {
             resp.sendError(500, e.getMessage());
         } catch (InvalidParametersException e) {
             resp.sendError(400, e.getMessage());
+        } catch (AlreadyExistException e) {
+            resp.sendError(409, e.getMessage());
         }
     }
 }

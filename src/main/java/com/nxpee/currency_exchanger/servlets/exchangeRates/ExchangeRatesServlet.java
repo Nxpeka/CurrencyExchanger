@@ -2,6 +2,7 @@ package com.nxpee.currency_exchanger.servlets.exchangeRates;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nxpee.currency_exchanger.dto.ExchangeRatesDTO;
+import com.nxpee.currency_exchanger.exception.AlreadyExistException;
 import com.nxpee.currency_exchanger.exception.InvalidParametersException;
 import com.nxpee.currency_exchanger.service.ExchangeRatesService;
 import jakarta.servlet.annotation.WebServlet;
@@ -44,6 +45,8 @@ public class ExchangeRatesServlet extends HttpServlet {
             resp.sendError(500, e.getMessage());
         } catch (InvalidParametersException e) {
             resp.sendError(400, e.getMessage());
+        } catch (AlreadyExistException e) {
+            resp.sendError(409, e.getMessage());
         }
     }
 }

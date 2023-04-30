@@ -2,6 +2,7 @@ package com.nxpee.currency_exchanger.service;
 
 import com.nxpee.currency_exchanger.dto.CurrenciesDTO;
 import com.nxpee.currency_exchanger.dto.ExchangeRatesDTO;
+import com.nxpee.currency_exchanger.exception.AlreadyExistException;
 import com.nxpee.currency_exchanger.exception.InvalidParametersException;
 import com.nxpee.currency_exchanger.model.ExchangeRates;
 import com.nxpee.currency_exchanger.repository.repositoryImpl.ExchangeRatesRepository;
@@ -67,22 +68,25 @@ public class ExchangeRatesService {
                 exchangeRatesDTO.getRate());
     }
 
-    public Optional<ExchangeRatesDTO> save(Set<Map.Entry<String, String[]>> entrySet) throws SQLException, InvalidParametersException {
+    public Optional<ExchangeRatesDTO> save(Set<Map.Entry<String, String[]>> entrySet) throws SQLException, InvalidParametersException, AlreadyExistException {
         Map<String, Object> mapParams = mapParams(entrySet);
 
         Optional<CurrenciesDTO> optionalBaseCurrencies = currenciesService.findByCode((String) mapParams.get("baseCurrencyCode"));
         Optional<CurrenciesDTO> optionalTargetCurrency = currenciesService.findByCode((String) mapParams.get("targetCurrencyCode"));
+        Double doubleRate = (Double) mapParams.get("rate");
 
-        if (optionalBaseCurrencies.isPresent() && optionalTargetCurrency.isPresent()){
-            CurrenciesDTO baseCurrenciesDTO = optionalBaseCurrencies.get();
-            CurrenciesDTO targetCurrenciesDTO = optionalTargetCurrency.get();
-            Double doubleRate = (Double) mapParams.get("rate");
+        if (optionalBaseCurrencies.isEmpty() || optionalTargetCurrency.isEmpty()){return Optional.empty();}
 
-            Integer genID = repository.save(new ExchangeRates(null, baseCurrenciesDTO.getId(), targetCurrenciesDTO.getId(), doubleRate));
+        CurrenciesDTO baseCurrenciesDTO = optionalBaseCurrencies.get();
+        CurrenciesDTO targetCurrenciesDTO = optionalTargetCurrency.get();
 
-            return Optional.of(new ExchangeRatesDTO(genID, baseCurrenciesDTO, targetCurrenciesDTO, doubleRate));
+        if(repository.findPair(baseCurrenciesDTO.getId(), targetCurrenciesDTO.getId()).isPresent()){
+            throw new AlreadyExistException("ExchangeRate for pair: " + baseCurrenciesDTO.getCode() + ", " + targetCurrenciesDTO.getCode() + " already exist");
         }
-        return Optional.empty();
+
+        Integer genID = repository.save(new ExchangeRates(null, baseCurrenciesDTO.getId(), targetCurrenciesDTO.getId(), doubleRate));
+
+        return Optional.of(new ExchangeRatesDTO(genID, baseCurrenciesDTO, targetCurrenciesDTO, doubleRate));
     }
 
     public void delete(ExchangeRatesDTO exchangeRatesDTO) throws SQLException {

@@ -1,6 +1,7 @@
 package com.nxpee.currency_exchanger.service;
 
 import com.nxpee.currency_exchanger.dto.CurrenciesDTO;
+import com.nxpee.currency_exchanger.exception.AlreadyExistException;
 import com.nxpee.currency_exchanger.exception.InvalidParametersException;
 import com.nxpee.currency_exchanger.model.Currencies;
 import com.nxpee.currency_exchanger.repository.repositoryImpl.CurrenciesRepository;
@@ -34,12 +35,16 @@ public class CurrenciesService {
         return new CurrenciesDTO(genID, currenciesDTO.getCode(), currenciesDTO.getName(), currenciesDTO.getSign());
     }
 
-    public CurrenciesDTO save(Set<Map.Entry<String, String[]>> entrySet) throws SQLException, InvalidParametersException {
+    public CurrenciesDTO save(Set<Map.Entry<String, String[]>> entrySet) throws SQLException, InvalidParametersException, AlreadyExistException {
         Map<String, Object> mapParams = mapParams(entrySet);
 
         String code = (String) mapParams.get("code");
         String name = (String) mapParams.get("name");
         String sign = (String) mapParams.get("sign");
+
+        if (repository.findByCode(code).isPresent()){
+            throw new AlreadyExistException("Currency with code: " + code + "already exist");
+        }
 
         Integer genID = repository.save(new Currencies(null, code, name, sign));
         return new CurrenciesDTO(genID, code, name, sign);
