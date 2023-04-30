@@ -14,7 +14,7 @@ import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.Optional;
 
-@WebServlet("/exchangeRate/*")
+@WebServlet(value = "/exchangeRate/*", name = "ExchangeRateServlet")
 public class ExchangeRateServlet extends HttpServlet {
 
     private final ExchangeRatesService exchangeRatesService = ExchangeRatesService.getInstance();

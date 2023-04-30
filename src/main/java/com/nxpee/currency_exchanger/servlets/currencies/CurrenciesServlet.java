@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 
-@WebServlet("/currencies")
+@WebServlet(value = "/currencies", name = "CurrenciesServlet")
 public class CurrenciesServlet extends HttpServlet {
 
     private final CurrenciesService currenciesService = CurrenciesService.getInstance();
