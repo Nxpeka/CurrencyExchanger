@@ -61,7 +61,7 @@ public class ExchangeRatesService {
     }
 
     public ExchangeRatesDTO save(ExchangeRatesDTO exchangeRatesDTO) throws SQLException {
-        Integer genID = repository.save(mapToExhangeRates(exchangeRatesDTO));
+        Integer genID = repository.save(mapToExchangeRates(exchangeRatesDTO));
         return new ExchangeRatesDTO(genID,
                 exchangeRatesDTO.getBaseCurrency(),
                 exchangeRatesDTO.getTargetCurrency(),
@@ -91,13 +91,13 @@ public class ExchangeRatesService {
 
     public void delete(ExchangeRatesDTO exchangeRatesDTO) throws SQLException {
         if(exchangeRatesDTO.getId() != null){
-            repository.delete(mapToExhangeRates(exchangeRatesDTO));
+            repository.delete(mapToExchangeRates(exchangeRatesDTO));
         }
     }
 
     public void update(ExchangeRatesDTO exchangeRatesDTO) throws SQLException {
         if(exchangeRatesDTO.getId() != null){
-            repository.update(mapToExhangeRates(exchangeRatesDTO));
+            repository.update(mapToExchangeRates(exchangeRatesDTO));
         }
     }
 
@@ -163,16 +163,16 @@ public class ExchangeRatesService {
     private Optional<ExchangeRatesDTO> mapToExchangeRatesDTO(ExchangeRates exchangeRates) throws SQLException {
         Optional<CurrenciesDTO> baseCurrencyDTO = currenciesService.findById(exchangeRates.getBaseCurrencyId());
         Optional<CurrenciesDTO> targetCurrencyDTO = currenciesService.findById(exchangeRates.getTargetCurrencyId());
-        if(baseCurrencyDTO.isPresent() && targetCurrencyDTO.isPresent()){
-            return Optional.of(new ExchangeRatesDTO(exchangeRates.getId(),
-                    baseCurrencyDTO.get(),
-                    targetCurrencyDTO.get(),
-                    exchangeRates.getRate()));
-        }
-        return Optional.empty();
+
+        if(baseCurrencyDTO.isEmpty() || targetCurrencyDTO.isEmpty()){return Optional.empty();}
+
+        return Optional.of(new ExchangeRatesDTO(exchangeRates.getId(),
+                baseCurrencyDTO.get(),
+                targetCurrencyDTO.get(),
+                exchangeRates.getRate()));
     }
 
-    private ExchangeRates mapToExhangeRates(ExchangeRatesDTO exchangeRatesDTO) {
+    private ExchangeRates mapToExchangeRates(ExchangeRatesDTO exchangeRatesDTO) {
         return new ExchangeRates(exchangeRatesDTO.getId(),
                 exchangeRatesDTO.getBaseCurrency().getId(),
                 exchangeRatesDTO.getTargetCurrency().getId(),
