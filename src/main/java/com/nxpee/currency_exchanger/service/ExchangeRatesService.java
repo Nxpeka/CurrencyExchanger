@@ -101,6 +101,23 @@ public class ExchangeRatesService {
         }
     }
 
+    public ExchangeRatesDTO updateRate(ExchangeRatesDTO updatingExchangeRatesDTO, String sRate) throws SQLException, InvalidParametersException {
+        if(sRate == null || sRate.isEmpty() || sRate.isBlank() || !sRate.contains("rate")){
+            throw new InvalidParametersException("Invalid rate");
+        }
+
+        Double rate = parseDouble(sRate.replace("rate=", ""));
+        if(rate == Double.MIN_VALUE){throw new InvalidParametersException("Invalid rate");}
+
+        ExchangeRatesDTO exchangeRatesDTO = new ExchangeRatesDTO(updatingExchangeRatesDTO.getId(),
+                updatingExchangeRatesDTO.getBaseCurrency(),
+                updatingExchangeRatesDTO.getTargetCurrency(),
+                rate);
+
+        update(exchangeRatesDTO);
+        return exchangeRatesDTO;
+    }
+
     private static Double parseDouble(String rate) {
         Double doubleRate;
         try {
