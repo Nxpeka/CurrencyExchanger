@@ -120,13 +120,11 @@ public class ExchangeRatesService {
     }
 
     private static Double parseDouble(String rate) {
-        Double doubleRate;
         try {
-            doubleRate = Double.parseDouble(rate);
+            return Double.parseDouble(rate);
         }catch (NumberFormatException e){
-            doubleRate = Double.MIN_VALUE;
+            return Double.MIN_VALUE;
         }
-        return doubleRate;
     }
 
     private Map<String, Object> mapParams(Set<Map.Entry<String, String[]>> entrySet) throws InvalidParametersException {
