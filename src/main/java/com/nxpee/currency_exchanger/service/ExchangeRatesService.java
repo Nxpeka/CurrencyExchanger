@@ -37,13 +37,7 @@ public class ExchangeRatesService {
         return Optional.empty();
     }
 
-    public Optional<ExchangeRatesDTO> findPair(String pair) throws InvalidParametersException, SQLException {
-        if(pair.isBlank() || pair.length() < 6){
-            throw new InvalidParametersException("Invalid pair");
-        }
-        String baseCurrencyCode = pair.substring(0, 3);
-        String targetCurrencyCode = pair.substring(3);
-
+    public Optional<ExchangeRatesDTO> findPair(String baseCurrencyCode, String targetCurrencyCode) throws InvalidParametersException, SQLException {
         Optional<CurrenciesDTO> optionalBaseCurrency = currenciesService.findByCode(baseCurrencyCode);
         Optional<CurrenciesDTO> optionalTargetCurrency = currenciesService.findByCode(targetCurrencyCode);
 
@@ -57,6 +51,16 @@ public class ExchangeRatesService {
             return Optional.of(mapToExchangeRatesDTO(exchangeRates.get()));
         }
         return Optional.empty();
+    }
+
+    public Optional<ExchangeRatesDTO> findPair(String pair) throws InvalidParametersException, SQLException {
+        if(pair.isBlank() || pair.length() < 6){
+            throw new InvalidParametersException("Invalid pair");
+        }
+        String baseCurrencyCode = pair.substring(0, 3);
+        String targetCurrencyCode = pair.substring(3);
+
+        return findPair(baseCurrencyCode, targetCurrencyCode);
     }
 
     public ExchangeRatesDTO save(ExchangeRatesDTO exchangeRatesDTO) throws SQLException {
