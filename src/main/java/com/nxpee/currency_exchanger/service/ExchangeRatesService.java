@@ -88,12 +88,11 @@ public class ExchangeRatesService {
         CurrenciesDTO targetCurrenciesDTO = currenciesService.findByCode((String) mapParams.get("targetCurrencyCode"));
         Double doubleRate = (Double) mapParams.get("rate");
 
-        if(findPairById(baseCurrenciesDTO.getId(), targetCurrenciesDTO.getId()) != null){
+        if(existExchangeRate(baseCurrenciesDTO.getId(), targetCurrenciesDTO.getId())){
             throw new AlreadyExistException("ExchangeRate for pair: " + baseCurrenciesDTO.getCode() + ", " + targetCurrenciesDTO.getCode() + " already exist");
         }
 
         Integer genID = repository.save(new ExchangeRates(null, baseCurrenciesDTO.getId(), targetCurrenciesDTO.getId(), doubleRate));
-
         return new ExchangeRatesDTO(genID, baseCurrenciesDTO, targetCurrenciesDTO, doubleRate);
     }
 
@@ -197,5 +196,14 @@ public class ExchangeRatesService {
                 exchangeRatesDTO.getBaseCurrency().getId(),
                 exchangeRatesDTO.getTargetCurrency().getId(),
                 exchangeRatesDTO.getRate());
+    }
+
+    private boolean existExchangeRate(Integer baseCurrId, Integer targetCurrId) throws SQLException {
+        try {
+            findPairById(baseCurrId, targetCurrId);
+            return true;
+        } catch (NotFoundException e) {
+            return true;
+        }
     }
 }
