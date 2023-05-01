@@ -5,7 +5,7 @@ import com.nxpee.currency_exchanger.dto.ExchangeRatesDTO;
 import com.nxpee.currency_exchanger.exception.InvalidParametersException;
 import com.nxpee.currency_exchanger.exception.NotFoundException;
 import com.nxpee.currency_exchanger.service.ExchangeRatesService;
-import com.nxpee.currency_exchanger.util.ExceptionMessage;
+import com.nxpee.currency_exchanger.dto.response.ExceptionMessageDTO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -40,13 +40,13 @@ public class ExchangeRateServlet extends HttpServlet {
             writer.write(objectMapper.writeValueAsString(updatedRate));
         } catch (SQLException e) {
             resp.setStatus(500);
-            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessageDTO(e.getMessage())));
         } catch (InvalidParametersException e) {
             resp.setStatus(400);
-            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessageDTO(e.getMessage())));
         } catch (NotFoundException e) {
             resp.setStatus(404);
-            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage("Currency not found")));
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessageDTO("Currency not found")));
         }
     }
     @Override
@@ -59,13 +59,13 @@ public class ExchangeRateServlet extends HttpServlet {
             writer.write(objectMapper.writeValueAsString(exchangeRatePair));
         } catch (SQLException e) {
             resp.setStatus(500);
-            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessageDTO(e.getMessage())));
         } catch (InvalidParametersException e) {
             resp.setStatus(400);
-            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessageDTO(e.getMessage())));
         } catch (NotFoundException e) {
             resp.setStatus(404);
-            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage("Currency not found")));
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessageDTO("Currency not found")));
         }
     }
 }

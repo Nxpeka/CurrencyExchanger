@@ -1,9 +1,9 @@
-package com.nxpee.currency_exchanger.util;
+package com.nxpee.currency_exchanger.dto.response;
 
-public class ExceptionMessage {
+public class ExceptionMessageDTO {
     private final String message;
 
-    public ExceptionMessage(String message) {
+    public ExceptionMessageDTO(String message) {
         this.message = message;
     }
 

@@ -4,7 +4,7 @@ import com.nxpee.currency_exchanger.dto.CurrenciesDTO;
 import com.nxpee.currency_exchanger.exception.AlreadyExistException;
 import com.nxpee.currency_exchanger.exception.InvalidParametersException;
 import com.nxpee.currency_exchanger.service.CurrenciesService;
-import com.nxpee.currency_exchanger.util.ExceptionMessage;
+import com.nxpee.currency_exchanger.dto.response.ExceptionMessageDTO;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,7 +28,7 @@ public class CurrenciesServlet extends HttpServlet {
             writer.write(currencies);
         } catch (SQLException e) {
             resp.setStatus(500);
-            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessageDTO(e.getMessage())));
         }
     }
 
@@ -41,13 +41,13 @@ public class CurrenciesServlet extends HttpServlet {
             writer.write(objectMapper.writeValueAsString(savedCurrencies));
         } catch (SQLException e) {
             resp.setStatus(500);
-            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessageDTO(e.getMessage())));
         } catch (InvalidParametersException e) {
             resp.setStatus(400);
-            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessageDTO(e.getMessage())));
         } catch (AlreadyExistException e) {
             resp.setStatus(409);
-            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessageDTO(e.getMessage())));
         }
     }
 }

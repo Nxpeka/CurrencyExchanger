@@ -6,7 +6,7 @@ import com.nxpee.currency_exchanger.exception.AlreadyExistException;
 import com.nxpee.currency_exchanger.exception.InvalidParametersException;
 import com.nxpee.currency_exchanger.exception.NotFoundException;
 import com.nxpee.currency_exchanger.service.ExchangeRatesService;
-import com.nxpee.currency_exchanger.util.ExceptionMessage;
+import com.nxpee.currency_exchanger.dto.response.ExceptionMessageDTO;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,7 +29,7 @@ public class ExchangeRatesServlet extends HttpServlet {
             writer.write(exchangeRates);
         }catch (SQLException | NotFoundException e){
             resp.setStatus(500);
-            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessageDTO(e.getMessage())));
         }
     }
 
@@ -43,13 +43,13 @@ public class ExchangeRatesServlet extends HttpServlet {
             writer.write(exchangeRates);
         } catch (SQLException | NotFoundException e) {
             resp.setStatus(500);
-            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessageDTO(e.getMessage())));
         } catch (InvalidParametersException e) {
             resp.setStatus(400);
-            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessageDTO(e.getMessage())));
         } catch (AlreadyExistException e) {
             resp.setStatus(409);
-            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessageDTO(e.getMessage())));
         }
     }
 }
