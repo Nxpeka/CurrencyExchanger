@@ -81,8 +81,8 @@ public class CurrenciesService {
                             name = entry.getValue()[0];
                             break;
                         }
-                        error.append(" name");
                     }
+                    error.append(" name");
                 }
                 case "code" -> {
                     if(!entry.getValue()[0].isBlank()){
@@ -90,17 +90,17 @@ public class CurrenciesService {
                             code = entry.getValue()[0];
                             break;
                         }
-                        error.append(" code");
                     }
+                    error.append(" code");
                 }
                 case "sign" -> {
                     if(!entry.getValue()[0].isBlank()) {
-                        if(entry.getValue()[0].length() == 3) {
+                        if(entry.getValue()[0].length() <= 3) {
                             sign = entry.getValue()[0];
                             break;
                         }
-                        error.append(" sign");
                     }
+                    error.append(" sign");
                 }
             }
         }
@@ -113,7 +113,7 @@ public class CurrenciesService {
             return params;
         }
 
-        throw new InvalidParametersException("Invalid parameters:");
+        throw new InvalidParametersException("Invalid parameters:" + error);
     }
 
     private Currencies mapToCurrencies(CurrenciesDTO currenciesDTO) {
