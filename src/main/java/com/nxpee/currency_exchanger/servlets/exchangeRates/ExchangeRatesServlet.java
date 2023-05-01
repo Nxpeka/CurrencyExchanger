@@ -13,7 +13,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
-import java.util.Optional;
 
 @WebServlet(value = "/exchangeRates", name = "ExchangeRatesServlet")
 public class ExchangeRatesServlet extends HttpServlet {
@@ -26,7 +25,7 @@ public class ExchangeRatesServlet extends HttpServlet {
             String exchangeRates = objectMapper.writeValueAsString(exchangeRatesService.findAll());
             PrintWriter writer = resp.getWriter();
             writer.write(exchangeRates);
-        }catch (SQLException e){
+        }catch (SQLException | InvalidParametersException e){
             resp.sendError(500, e.getMessage());
         }
     }
@@ -35,12 +34,10 @@ public class ExchangeRatesServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try{
             ObjectMapper objectMapper = new ObjectMapper();
-            Optional<ExchangeRatesDTO> savedExchangeRates = exchangeRatesService.save(req.getParameterMap().entrySet());
-            if(savedExchangeRates.isPresent()){
-                String exchangeRates = objectMapper.writeValueAsString(savedExchangeRates.get());
-                PrintWriter writer = resp.getWriter();
-                writer.write(exchangeRates);
-            }
+            ExchangeRatesDTO savedExchangeRates = exchangeRatesService.save(req.getParameterMap().entrySet());
+            String exchangeRates = objectMapper.writeValueAsString(savedExchangeRates);
+            PrintWriter writer = resp.getWriter();
+            writer.write(exchangeRates);
         } catch (SQLException e) {
             resp.sendError(500, e.getMessage());
         } catch (InvalidParametersException e) {
