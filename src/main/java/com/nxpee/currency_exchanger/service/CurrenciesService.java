@@ -3,6 +3,7 @@ package com.nxpee.currency_exchanger.service;
 import com.nxpee.currency_exchanger.dto.CurrenciesDTO;
 import com.nxpee.currency_exchanger.exception.AlreadyExistException;
 import com.nxpee.currency_exchanger.exception.InvalidParametersException;
+import com.nxpee.currency_exchanger.exception.NotFoundException;
 import com.nxpee.currency_exchanger.model.Currencies;
 import com.nxpee.currency_exchanger.repository.repositoryImpl.CurrenciesRepository;
 
@@ -25,9 +26,12 @@ public class CurrenciesService {
         return currenciesDTOS;
     }
 
-    public Optional<CurrenciesDTO> findById(Integer id) throws SQLException {
+    public CurrenciesDTO findById(Integer id) throws SQLException, NotFoundException {
         Optional<Currencies> currencies = repository.findById(id);
-        return currencies.map(this::mapToCurrenciesDTO);
+        if(currencies.isEmpty()){
+            throw new NotFoundException("Currency not found");
+        }
+        return mapToCurrenciesDTO(currencies.get());
     }
 
     public CurrenciesDTO save(CurrenciesDTO currenciesDTO) throws SQLException {
@@ -50,12 +54,15 @@ public class CurrenciesService {
         return new CurrenciesDTO(genID, code, name, sign);
     }
 
-    public Optional<CurrenciesDTO> findByCode(String code) throws SQLException, InvalidParametersException {
+    public CurrenciesDTO findByCode(String code) throws SQLException, InvalidParametersException, NotFoundException {
         if (code.isBlank() || code.length() < 3){
             throw new InvalidParametersException("Invalid code");
         }
         Optional<Currencies> currencies = repository.findByCode(code);
-        return currencies.map(this::mapToCurrenciesDTO);
+        if (currencies.isEmpty()){
+            throw new NotFoundException("Currency not found");
+        }
+        return mapToCurrenciesDTO(currencies.get());
     }
 
     public void delete(CurrenciesDTO currenciesDTO) throws SQLException {

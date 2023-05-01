@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nxpee.currency_exchanger.dto.ExchangeRatesDTO;
 import com.nxpee.currency_exchanger.exception.AlreadyExistException;
 import com.nxpee.currency_exchanger.exception.InvalidParametersException;
+import com.nxpee.currency_exchanger.exception.NotFoundException;
 import com.nxpee.currency_exchanger.service.ExchangeRatesService;
 import com.nxpee.currency_exchanger.util.ExceptionMessage;
 import jakarta.servlet.annotation.WebServlet;
@@ -26,7 +27,7 @@ public class ExchangeRatesServlet extends HttpServlet {
             String exchangeRates = objectMapper.writeValueAsString(exchangeRatesService.findAll());
             PrintWriter writer = resp.getWriter();
             writer.write(exchangeRates);
-        }catch (SQLException | InvalidParametersException e){
+        }catch (SQLException | NotFoundException e){
             resp.setStatus(500);
             resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
         }
@@ -40,7 +41,7 @@ public class ExchangeRatesServlet extends HttpServlet {
             String exchangeRates = objectMapper.writeValueAsString(savedExchangeRates);
             PrintWriter writer = resp.getWriter();
             writer.write(exchangeRates);
-        } catch (SQLException e) {
+        } catch (SQLException | NotFoundException e) {
             resp.setStatus(500);
             resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
         } catch (InvalidParametersException e) {

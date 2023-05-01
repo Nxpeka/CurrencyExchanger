@@ -3,6 +3,7 @@ package com.nxpee.currency_exchanger.servlets.exchangeRates;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nxpee.currency_exchanger.dto.ExchangeRatesDTO;
 import com.nxpee.currency_exchanger.exception.InvalidParametersException;
+import com.nxpee.currency_exchanger.exception.NotFoundException;
 import com.nxpee.currency_exchanger.service.ExchangeRatesService;
 import com.nxpee.currency_exchanger.util.ExceptionMessage;
 import jakarta.servlet.ServletException;
@@ -14,7 +15,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
-import java.util.Optional;
 
 @WebServlet(value = "/exchangeRate/*", name = "ExchangeRateServlet")
 public class ExchangeRateServlet extends HttpServlet {
@@ -31,29 +31,22 @@ public class ExchangeRateServlet extends HttpServlet {
 
     protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String requestPair = req.getPathInfo().replace("/", "").toUpperCase();
+        String parameter = req.getReader().readLine().toLowerCase();
         ObjectMapper objectMapper = new ObjectMapper();
         try{
             PrintWriter writer = resp.getWriter();
-            Optional<ExchangeRatesDTO> exchangeRatePair = exchangeRatesService.findPair(requestPair);
-            if (exchangeRatePair.isPresent()) {
-                ExchangeRatesDTO exchangeRate = exchangeRatePair.get();
-                String parameter = req.getReader().readLine().toLowerCase();
-
-                ExchangeRatesDTO updatedRate = exchangeRatesService.updateRate(exchangeRate, parameter);
-
-                String rate = objectMapper.writeValueAsString(updatedRate);
-                writer.write(rate);
-            } else {
-                resp.setStatus(404);
-                writer.write(objectMapper.writeValueAsString(new ExceptionMessage("Currency not found")));
-            }
-
+            ExchangeRatesDTO exchangeRatePair = exchangeRatesService.findPair(requestPair);
+            ExchangeRatesDTO updatedRate = exchangeRatesService.updateRate(exchangeRatePair, parameter);
+            writer.write(objectMapper.writeValueAsString(updatedRate));
         } catch (SQLException e) {
             resp.setStatus(500);
             resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
         } catch (InvalidParametersException e) {
             resp.setStatus(400);
             resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
+        } catch (NotFoundException e) {
+            resp.setStatus(404);
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage("Currency not found")));
         }
     }
     @Override
@@ -62,19 +55,17 @@ public class ExchangeRateServlet extends HttpServlet {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             PrintWriter writer = resp.getWriter();
-            Optional<ExchangeRatesDTO> exchangeRatePair = exchangeRatesService.findPair(requestPair);
-            if (exchangeRatePair.isPresent()) {
-                writer.write(objectMapper.writeValueAsString(exchangeRatePair.get()));
-            } else {
-                resp.setStatus(404);
-                writer.write(objectMapper.writeValueAsString(new ExceptionMessage("Currency not found")));
-            }
+            ExchangeRatesDTO exchangeRatePair = exchangeRatesService.findPair(requestPair);
+            writer.write(objectMapper.writeValueAsString(exchangeRatePair));
         } catch (SQLException e) {
             resp.setStatus(500);
             resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
         } catch (InvalidParametersException e) {
             resp.setStatus(400);
             resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
+        } catch (NotFoundException e) {
+            resp.setStatus(404);
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage("Currency not found")));
         }
     }
 }

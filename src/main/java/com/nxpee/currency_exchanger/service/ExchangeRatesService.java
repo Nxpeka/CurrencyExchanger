@@ -4,6 +4,7 @@ import com.nxpee.currency_exchanger.dto.CurrenciesDTO;
 import com.nxpee.currency_exchanger.dto.ExchangeRatesDTO;
 import com.nxpee.currency_exchanger.exception.AlreadyExistException;
 import com.nxpee.currency_exchanger.exception.InvalidParametersException;
+import com.nxpee.currency_exchanger.exception.NotFoundException;
 import com.nxpee.currency_exchanger.model.ExchangeRates;
 import com.nxpee.currency_exchanger.repository.repositoryImpl.ExchangeRatesRepository;
 
@@ -20,7 +21,7 @@ public class ExchangeRatesService {
         return INSTANCE;
     }
 
-    public List<ExchangeRatesDTO> findAll() throws SQLException, InvalidParametersException {
+    public List<ExchangeRatesDTO> findAll() throws SQLException, NotFoundException {
         ArrayList<ExchangeRatesDTO> exchangeRatesDTOS = new ArrayList<>();
         Iterable<ExchangeRates> all = repository.findAll();
         for (ExchangeRates rates: all){
@@ -29,31 +30,40 @@ public class ExchangeRatesService {
         return exchangeRatesDTOS;
     }
 
-    public Optional<ExchangeRatesDTO> findById(Integer id) throws SQLException, InvalidParametersException {
+    public ExchangeRatesDTO findById(Integer id) throws SQLException, NotFoundException {
         Optional<ExchangeRates> exchangeRates = repository.findById(id);
-        if(exchangeRates.isPresent()){
-            return Optional.of(mapToExchangeRatesDTO(exchangeRates.get()));
+        if(exchangeRates.isEmpty()){
+            throw new NotFoundException("ExchangeRate not Found");
         }
-        return Optional.empty();
+        return mapToExchangeRatesDTO(exchangeRates.get());
     }
 
-    public Optional<ExchangeRatesDTO> findPair(String baseCurrencyCode, String targetCurrencyCode) throws InvalidParametersException, SQLException {
-        Optional<CurrenciesDTO> optionalBaseCurrency = currenciesService.findByCode(baseCurrencyCode);
-        Optional<CurrenciesDTO> optionalTargetCurrency = currenciesService.findByCode(targetCurrencyCode);
-
-        if(optionalBaseCurrency.isEmpty() || optionalTargetCurrency.isEmpty()){return Optional.empty();}
-        CurrenciesDTO baseCurrency = optionalBaseCurrency.get();
-        CurrenciesDTO targetCurrency = optionalTargetCurrency.get();
+    public ExchangeRatesDTO findPairById(Integer baseCurrencyId, Integer targetCurrencyId) throws SQLException, NotFoundException {
+        CurrenciesDTO baseCurrency = currenciesService.findById(baseCurrencyId);
+        CurrenciesDTO targetCurrency = currenciesService.findById(targetCurrencyId);
 
         Optional<ExchangeRates> exchangeRates = repository.findPair(baseCurrency.getId(), targetCurrency.getId());
 
-        if (exchangeRates.isPresent()){
-            return Optional.of(mapToExchangeRatesDTO(exchangeRates.get()));
+        if (exchangeRates.isEmpty()){
+            throw new NotFoundException("Pair not found");
         }
-        return Optional.empty();
+
+        return mapToExchangeRatesDTO(exchangeRates.get());
     }
 
-    public Optional<ExchangeRatesDTO> findPair(String pair) throws InvalidParametersException, SQLException {
+    public ExchangeRatesDTO findPair(String baseCurrencyCode, String targetCurrencyCode) throws InvalidParametersException, SQLException, NotFoundException {
+        CurrenciesDTO baseCurrency = currenciesService.findByCode(baseCurrencyCode);
+        CurrenciesDTO targetCurrency = currenciesService.findByCode(targetCurrencyCode);
+
+        Optional<ExchangeRates> exchangeRates = repository.findPair(baseCurrency.getId(), targetCurrency.getId());
+
+        if (exchangeRates.isEmpty()){
+            throw new NotFoundException("Pair not found");
+        }
+        return mapToExchangeRatesDTO(exchangeRates.get());
+    }
+
+    public ExchangeRatesDTO findPair(String pair) throws InvalidParametersException, SQLException, NotFoundException {
         if(pair.isBlank() || pair.length() < 6){
             throw new InvalidParametersException("Invalid pair");
         }
@@ -71,21 +81,14 @@ public class ExchangeRatesService {
                 exchangeRatesDTO.getRate());
     }
 
-    public ExchangeRatesDTO save(Set<Map.Entry<String, String[]>> entrySet) throws SQLException, InvalidParametersException, AlreadyExistException {
+    public ExchangeRatesDTO save(Set<Map.Entry<String, String[]>> entrySet) throws SQLException, InvalidParametersException, AlreadyExistException, NotFoundException {
         Map<String, Object> mapParams = mapParams(entrySet);
 
-        Optional<CurrenciesDTO> optionalBaseCurrencies = currenciesService.findByCode((String) mapParams.get("baseCurrencyCode"));
-        Optional<CurrenciesDTO> optionalTargetCurrency = currenciesService.findByCode((String) mapParams.get("targetCurrencyCode"));
+        CurrenciesDTO baseCurrenciesDTO = currenciesService.findByCode((String) mapParams.get("baseCurrencyCode"));
+        CurrenciesDTO targetCurrenciesDTO = currenciesService.findByCode((String) mapParams.get("targetCurrencyCode"));
         Double doubleRate = (Double) mapParams.get("rate");
 
-        if (optionalBaseCurrencies.isEmpty() || optionalTargetCurrency.isEmpty()){
-            throw new InvalidParametersException("BaseCurrencies or TargetCurrency not found");
-        }
-
-        CurrenciesDTO baseCurrenciesDTO = optionalBaseCurrencies.get();
-        CurrenciesDTO targetCurrenciesDTO = optionalTargetCurrency.get();
-
-        if(repository.findPair(baseCurrenciesDTO.getId(), targetCurrenciesDTO.getId()).isPresent()){
+        if(findPairById(baseCurrenciesDTO.getId(), targetCurrenciesDTO.getId()) != null){
             throw new AlreadyExistException("ExchangeRate for pair: " + baseCurrenciesDTO.getCode() + ", " + targetCurrenciesDTO.getCode() + " already exist");
         }
 
@@ -179,17 +182,13 @@ public class ExchangeRatesService {
         throw new InvalidParametersException("Invalid parameters:" + error);
     }
 
-    private ExchangeRatesDTO mapToExchangeRatesDTO(ExchangeRates exchangeRates) throws SQLException, InvalidParametersException {
-        Optional<CurrenciesDTO> baseCurrencyDTO = currenciesService.findById(exchangeRates.getBaseCurrencyId());
-        Optional<CurrenciesDTO> targetCurrencyDTO = currenciesService.findById(exchangeRates.getTargetCurrencyId());
-
-        if(baseCurrencyDTO.isEmpty() || targetCurrencyDTO.isEmpty()){
-            throw new InvalidParametersException("BaseCurrencies or TargetCurrency not found");
-        }
+    private ExchangeRatesDTO mapToExchangeRatesDTO(ExchangeRates exchangeRates) throws SQLException, NotFoundException {
+        CurrenciesDTO baseCurrencyDTO = currenciesService.findById(exchangeRates.getBaseCurrencyId());
+        CurrenciesDTO targetCurrencyDTO = currenciesService.findById(exchangeRates.getTargetCurrencyId());
 
         return new ExchangeRatesDTO(exchangeRates.getId(),
-                baseCurrencyDTO.get(),
-                targetCurrencyDTO.get(),
+                baseCurrencyDTO,
+                targetCurrencyDTO,
                 exchangeRates.getRate());
     }
 

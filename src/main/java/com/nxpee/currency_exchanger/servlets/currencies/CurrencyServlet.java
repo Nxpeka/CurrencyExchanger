@@ -3,6 +3,7 @@ package com.nxpee.currency_exchanger.servlets.currencies;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nxpee.currency_exchanger.dto.CurrenciesDTO;
 import com.nxpee.currency_exchanger.exception.InvalidParametersException;
+import com.nxpee.currency_exchanger.exception.NotFoundException;
 import com.nxpee.currency_exchanger.service.CurrenciesService;
 import com.nxpee.currency_exchanger.util.ExceptionMessage;
 import jakarta.servlet.annotation.WebServlet;
@@ -13,7 +14,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
-import java.util.Optional;
 
 @WebServlet(value = "/currency/*", name = "CurrencyServlet")
 public class CurrencyServlet extends HttpServlet {
@@ -25,19 +25,17 @@ public class CurrencyServlet extends HttpServlet {
         ObjectMapper objectMapper = new ObjectMapper();
         try{
             PrintWriter writer = resp.getWriter();
-            Optional<CurrenciesDTO> currency = currenciesService.findByCode(requestCode);
-            if (currency.isPresent()){
-                writer.write(objectMapper.writeValueAsString(currency.get()));
-            } else {
-                resp.setStatus(404);
-                writer.write(objectMapper.writeValueAsString(new ExceptionMessage("Currency not found")));
-            }
+            CurrenciesDTO currency = currenciesService.findByCode(requestCode);
+            writer.write(objectMapper.writeValueAsString(currency));
         }catch (SQLException e) {
             resp.setStatus(500);
             resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
         } catch (InvalidParametersException e) {
             resp.setStatus(400);
             resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
+        } catch (NotFoundException e) {
+            resp.setStatus(404);
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage("Currency not found")));
         }
     }
 }
