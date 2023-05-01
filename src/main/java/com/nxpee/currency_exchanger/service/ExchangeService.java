@@ -112,8 +112,8 @@ public class ExchangeService {
 
         if(from != null && to != null && amount != null){
             HashMap<String, Object> params = new HashMap<>();
-            params.put("from", from);
-            params.put("to", to);
+            params.put("from", from.toUpperCase());
+            params.put("to", to.toUpperCase());
             params.put("amount", amount);
 
             return params;
