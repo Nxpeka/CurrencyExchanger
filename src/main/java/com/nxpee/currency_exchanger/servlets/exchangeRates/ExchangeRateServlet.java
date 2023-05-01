@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nxpee.currency_exchanger.dto.ExchangeRatesDTO;
 import com.nxpee.currency_exchanger.exception.InvalidParametersException;
 import com.nxpee.currency_exchanger.service.ExchangeRatesService;
+import com.nxpee.currency_exchanger.util.ExceptionMessage;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -30,8 +31,8 @@ public class ExchangeRateServlet extends HttpServlet {
 
     protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String requestPair = req.getPathInfo().replace("/", "").toUpperCase();
+        ObjectMapper objectMapper = new ObjectMapper();
         try{
-            ObjectMapper objectMapper = new ObjectMapper();
             PrintWriter writer = resp.getWriter();
             Optional<ExchangeRatesDTO> exchangeRatePair = exchangeRatesService.findPair(requestPair);
             if (exchangeRatePair.isPresent()) {
@@ -43,31 +44,37 @@ public class ExchangeRateServlet extends HttpServlet {
                 String rate = objectMapper.writeValueAsString(updatedRate);
                 writer.write(rate);
             } else {
-                resp.sendError(404, "ExchangeRate not found");
+                resp.setStatus(404);
+                writer.write(objectMapper.writeValueAsString(new ExceptionMessage("Currency not found")));
             }
 
         } catch (SQLException e) {
-            resp.sendError(500, e.getMessage());
+            resp.setStatus(500);
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
         } catch (InvalidParametersException e) {
-            resp.sendError(400, e.getMessage());
+            resp.setStatus(400);
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
         }
     }
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String requestPair = req.getPathInfo().replace("/", "").toUpperCase();
+        ObjectMapper objectMapper = new ObjectMapper();
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
             PrintWriter writer = resp.getWriter();
             Optional<ExchangeRatesDTO> exchangeRatePair = exchangeRatesService.findPair(requestPair);
             if (exchangeRatePair.isPresent()) {
                 writer.write(objectMapper.writeValueAsString(exchangeRatePair.get()));
             } else {
-                resp.sendError(404, "ExchangeRate not found");
+                resp.setStatus(404);
+                writer.write(objectMapper.writeValueAsString(new ExceptionMessage("Currency not found")));
             }
         } catch (SQLException e) {
-            resp.sendError(500, e.getMessage());
+            resp.setStatus(500);
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
         } catch (InvalidParametersException e) {
-            resp.sendError(400, e.getMessage());
+            resp.setStatus(400);
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
         }
     }
 }

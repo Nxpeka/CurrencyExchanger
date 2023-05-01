@@ -4,6 +4,7 @@ import com.nxpee.currency_exchanger.dto.CurrenciesDTO;
 import com.nxpee.currency_exchanger.exception.AlreadyExistException;
 import com.nxpee.currency_exchanger.exception.InvalidParametersException;
 import com.nxpee.currency_exchanger.service.CurrenciesService;
+import com.nxpee.currency_exchanger.util.ExceptionMessage;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,30 +21,33 @@ public class CurrenciesServlet extends HttpServlet {
     private final CurrenciesService currenciesService = CurrenciesService.getInstance();
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
         try{
-            ObjectMapper objectMapper = new ObjectMapper();
             String currencies = objectMapper.writeValueAsString(currenciesService.findAll());
             PrintWriter writer = resp.getWriter();
             writer.write(currencies);
         } catch (SQLException e) {
-            resp.sendError(500, e.getMessage());
+            resp.setStatus(500);
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
         }
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
             CurrenciesDTO savedCurrencies = currenciesService.save(req.getParameterMap().entrySet());
             PrintWriter writer = resp.getWriter();
             writer.write(objectMapper.writeValueAsString(savedCurrencies));
-
         } catch (SQLException e) {
-            resp.sendError(500, e.getMessage());
+            resp.setStatus(500);
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
         } catch (InvalidParametersException e) {
-            resp.sendError(400, e.getMessage());
+            resp.setStatus(400);
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
         } catch (AlreadyExistException e) {
-            resp.sendError(409, e.getMessage());
+            resp.setStatus(409);
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
         }
     }
 }

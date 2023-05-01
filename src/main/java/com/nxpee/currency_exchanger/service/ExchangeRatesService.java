@@ -47,9 +47,7 @@ public class ExchangeRatesService {
         Optional<CurrenciesDTO> optionalBaseCurrency = currenciesService.findByCode(baseCurrencyCode);
         Optional<CurrenciesDTO> optionalTargetCurrency = currenciesService.findByCode(targetCurrencyCode);
 
-        if(optionalBaseCurrency.isEmpty() || optionalTargetCurrency.isEmpty()){
-            throw new InvalidParametersException("BaseCurrencies or TargetCurrency not found");
-        }
+        if(optionalBaseCurrency.isEmpty() || optionalTargetCurrency.isEmpty()){return Optional.empty();}
         CurrenciesDTO baseCurrency = optionalBaseCurrency.get();
         CurrenciesDTO targetCurrency = optionalTargetCurrency.get();
 

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nxpee.currency_exchanger.dto.CurrenciesDTO;
 import com.nxpee.currency_exchanger.exception.InvalidParametersException;
 import com.nxpee.currency_exchanger.service.CurrenciesService;
+import com.nxpee.currency_exchanger.util.ExceptionMessage;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,19 +22,22 @@ public class CurrencyServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String requestCode = req.getPathInfo().replace("/", "").toUpperCase();
+        ObjectMapper objectMapper = new ObjectMapper();
         try{
-            ObjectMapper objectMapper = new ObjectMapper();
             PrintWriter writer = resp.getWriter();
             Optional<CurrenciesDTO> currency = currenciesService.findByCode(requestCode);
             if (currency.isPresent()){
                 writer.write(objectMapper.writeValueAsString(currency.get()));
             } else {
-                resp.sendError(404, "Currency not found");
+                resp.setStatus(404);
+                writer.write(objectMapper.writeValueAsString(new ExceptionMessage("Currency not found")));
             }
         }catch (SQLException e) {
-            resp.sendError(500, e.getMessage());
+            resp.setStatus(500);
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
         } catch (InvalidParametersException e) {
-            resp.sendError(400, e.getMessage());
+            resp.setStatus(400);
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
         }
     }
 }

@@ -5,6 +5,7 @@ import com.nxpee.currency_exchanger.dto.ExchangeRatesDTO;
 import com.nxpee.currency_exchanger.exception.AlreadyExistException;
 import com.nxpee.currency_exchanger.exception.InvalidParametersException;
 import com.nxpee.currency_exchanger.service.ExchangeRatesService;
+import com.nxpee.currency_exchanger.util.ExceptionMessage;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,30 +21,34 @@ public class ExchangeRatesServlet extends HttpServlet {
     private final ExchangeRatesService exchangeRatesService = ExchangeRatesService.getInstance();
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
         try{
-            ObjectMapper objectMapper = new ObjectMapper();
             String exchangeRates = objectMapper.writeValueAsString(exchangeRatesService.findAll());
             PrintWriter writer = resp.getWriter();
             writer.write(exchangeRates);
         }catch (SQLException | InvalidParametersException e){
-            resp.sendError(500, e.getMessage());
+            resp.setStatus(500);
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
         }
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
         try{
-            ObjectMapper objectMapper = new ObjectMapper();
             ExchangeRatesDTO savedExchangeRates = exchangeRatesService.save(req.getParameterMap().entrySet());
             String exchangeRates = objectMapper.writeValueAsString(savedExchangeRates);
             PrintWriter writer = resp.getWriter();
             writer.write(exchangeRates);
         } catch (SQLException e) {
-            resp.sendError(500, e.getMessage());
+            resp.setStatus(500);
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
         } catch (InvalidParametersException e) {
-            resp.sendError(400, e.getMessage());
+            resp.setStatus(400);
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
         } catch (AlreadyExistException e) {
-            resp.sendError(409, e.getMessage());
+            resp.setStatus(409);
+            resp.getWriter().write(objectMapper.writeValueAsString(new ExceptionMessage(e.getMessage())));
         }
     }
 }
